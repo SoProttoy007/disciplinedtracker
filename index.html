@@ -2492,33 +2492,39 @@ function renderTable() {
             if (isFuture) {
                 html += `<td class="cell cell-locked" title="Future days — keep going!">${done ? '<span class="tick">✓</span>' : '<span style="color:#1e2d45;font-size:0.8rem;">🗓️</span>'}</td>`;
             } else if (c.type === 'subject' && isToday && !done) {
-                // Subject + today + not yet done → check all three gates
                 const rem = getCooldownRemaining(i, ds);
-                const ptsCapped  = getTodayPoints() >= DAILY_PT_CAP;
-                const clkCapped  = getTodaySubjectClicks() >= DAILY_CLK_CAP;
-
+                const ptsCapped = getTodayPoints() >= DAILY_PT_CAP;
+                const clkCapped = getTodaySubjectClicks() >= DAILY_CLK_CAP;
                 if (rem > 0) {
-                    // Show greyed-out cell with live countdown
                     const ck = cellKey(i, ds);
-                    html += `<td class="cell cell-cooldown" title="Cooldown active" data-ck="${ck}">
-                        <div class="cd-wrap">
-                          <span class="cd-icon">⏳</span>
-                          <span class="cd-time" id="cdt_${ck.replace(/[|\s]/g,'_')}">${fmtMs(rem)}</span>
-                        </div>
-                    </td>`;
+                    const safeId = 'cdt_' + ck.replace(/[|\s]/g,'_');
+                    html += `<td class="cell cell-cooldown" title="Cooldown active" data-ck="${ck}"><div class="cd-wrap"><span class="cd-icon">⏳</span><span class="cd-time" id="${safeId}">${fmtMs(rem)}</span></div></td>`;
                 } else if (ptsCapped || clkCapped) {
                     const tip = ptsCapped ? 'Daily 100 pt cap reached' : 'Daily 12-click cap reached';
                     html += `<td class="cell cell-capped" title="${tip}">🔒</td>`;
                 } else {
-                    html += `<td class="cell" onclick="toggleCell(${i},'${ds}')"></td>`;
+                    // Use data-idx + data-ds to avoid space-in-attribute bug
+                    html += `<td class="cell cell-clickable" data-idx="${i}" data-ds="${encodeURIComponent(ds)}"></td>`;
                 }
             } else {
-                html += `<td class="cell" onclick="toggleCell(${i},'${ds}')">${done ? '<span class="tick">✓</span>' : ''}</td>`;
+                // Past day or habit — use data attributes to avoid space-in-attribute bug
+                const doneHtml = done ? '<span class="tick">✓</span>' : '';
+                html += `<td class="cell cell-clickable" data-idx="${i}" data-ds="${encodeURIComponent(ds)}">${doneHtml}</td>`;
             }
         });
-        html += `<td><button class="del-btn" onclick="deleteItem(${i})">✕</button></td>`;
+        html += `<td><button class="del-btn" data-delidx="${i}">✕</button></td>`;
         tr.innerHTML = html;
         tbody.appendChild(tr);
+    });
+
+    // Attach click handlers AFTER setting innerHTML (avoids space-in-attribute bug)
+    tbody.querySelectorAll('.cell-clickable').forEach(td => {
+        td.addEventListener('click', () => {
+            toggleCell(parseInt(td.dataset.idx), decodeURIComponent(td.dataset.ds));
+        });
+    });
+    tbody.querySelectorAll('.del-btn[data-delidx]').forEach(btn => {
+        btn.addEventListener('click', () => deleteItem(parseInt(btn.dataset.delidx)));
     });
 
     renderDailyBadges();
