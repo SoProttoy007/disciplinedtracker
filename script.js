@@ -127,14 +127,19 @@ auth.signOut = auth.signOut.bind(auth);
 // =============================================
 
 function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => {
-        s.classList.remove('active');
-        s.style.display = 'none';
+    ['authScreen','usernameScreen','appScreen'].forEach(sid => {
+        const s = document.getElementById(sid);
+        if (s) {
+            s.classList.remove('active');
+            s.style.cssText = s.style.cssText.replace(/display\s*:[^;]+;?/gi, '');
+            s.style.display = 'none';
+        }
     });
     const el = document.getElementById(id);
-    el.classList.add('active');
-    // appScreen uses flex row, auth screens use flex column
-    el.style.display = (id === 'appScreen') ? 'flex' : 'flex';
+    if (el) {
+        el.classList.add('active');
+        el.style.display = 'flex';
+    }
 }
 
 function showApp() {
