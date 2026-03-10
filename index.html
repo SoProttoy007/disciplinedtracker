@@ -855,12 +855,62 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
     border-radius: 50%;
 }
 
-/* ===== CELL LOCKED ===== */
 .cell-locked {
     cursor: not-allowed !important;
     opacity: 0.5;
     background: rgba(30,45,69,0.3) !important;
 }
+
+/* ===== COOLDOWN & CAP CELLS ===== */
+.cell-cooldown {
+    cursor: not-allowed !important;
+    background: rgba(245,158,11,0.07) !important;
+    border-color: rgba(245,158,11,0.3) !important;
+    opacity: 0.8;
+}
+.cell-cooldown:hover { background: rgba(245,158,11,0.07) !important; }
+.cd-wrap { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.cd-icon { font-size:0.85rem; line-height:1; }
+.cd-time {
+    font-size: 0.58rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    color: #f59e0b;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.cell-capped {
+    cursor: not-allowed !important;
+    background: rgba(239,68,68,0.07) !important;
+    border-color: rgba(239,68,68,0.3) !important;
+    opacity: 0.65;
+}
+.cell-capped:hover { background: rgba(239,68,68,0.07) !important; }
+
+/* ===== LIMIT BANNER ===== */
+.limit-banner {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-120px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 24px;
+    border-radius: 50px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    z-index: 99999;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none;
+    white-space: nowrap;
+}
+.limit-banner.show { transform: translateX(-50%) translateY(0); }
+.limit-banner.type-cooldown { background: linear-gradient(135deg,#78350f,#1e1b4b); border:1px solid rgba(245,158,11,0.5); }
+.limit-banner.type-cap      { background: linear-gradient(135deg,#7f1d1d,#1e1b4b); border:1px solid rgba(239,68,68,0.5); }
 
 /* ===== FOCUS MODE ===== */
 .btn-focus {
@@ -1684,7 +1734,8 @@ let userData = {
     friends: [],
     friendRequests: [],
     streak: 0,
-    lastActive: null
+    lastActive: null,
+    completionTimestamps: {}  // key: "choreIdx_dateString" -> timestamp ms
 };
 
 let timerInterval = null;
@@ -1869,6 +1920,7 @@ async function syncToCloud() {
         friendRequests: userData.friendRequests,
         streak: userData.streak,
         lastActive: dStr,
+        completionTimestamps: userData.completionTimestamps || {},
         totalPoints: getTotalPoints(),
         distractionPenalty: userData.distractionPenalty || 0,
         overallScore: getTotalPoints(),
@@ -2320,12 +2372,92 @@ window.deleteItem = function (idx) {
     }
 };
 
+// =============================================
+// RATE LIMITING · COOLDOWN · THRESHOLDS
+// =============================================
+const COOLDOWN_MS   = 2 * 60 * 60 * 1000; // 2-hour cooldown per subject cell
+const DAILY_PT_CAP  = 100;                 // max pts per day
+const DAILY_CLK_CAP = 12;                  // max subject completions per day
+let   cdTickers     = {};                  // cellKey -> intervalId
+
+function cellKey(idx, ds) { return idx + '||' + ds; }
+
+function getTodaySubjectClicks() {
+    return userData.chores
+        .filter(c => c.type === 'subject' && c.history && c.history[dStr])
+        .length;
+}
+
+function getCooldownRemaining(idx, ds) {
+    const ts = (userData.completionTimestamps || {})[cellKey(idx, ds)];
+    if (!ts) return 0;
+    return Math.max(0, COOLDOWN_MS - (Date.now() - ts));
+}
+
+function fmtMs(ms) {
+    const s = Math.ceil(ms / 1000);
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    if (h > 0) return h + 'h ' + m + 'm';
+    if (m > 0) return m + 'm ' + sec + 's';
+    return sec + 's';
+}
+
+function showBanner(msg, type) {
+    let el = document.getElementById('limitBanner');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'limitBanner';
+        el.className = 'limit-banner';
+        document.body.appendChild(el);
+    }
+    clearTimeout(el._t1); clearTimeout(el._t2);
+    el.className = 'limit-banner type-' + type;
+    el.textContent = msg;
+    el._t1 = setTimeout(() => el.classList.add('show'), 20);
+    el._t2 = setTimeout(() => el.classList.remove('show'), 3600);
+}
+
 window.toggleCell = function (idx, ds) {
     const cellDate = new Date(ds);
     cellDate.setHours(0,0,0,0);
     if (cellDate.getTime() > today.getTime()) return;
-    if (!userData.chores[idx].history) userData.chores[idx].history = {};
-    userData.chores[idx].history[ds] = !userData.chores[idx].history[ds];
+
+    const chore = userData.chores[idx];
+    if (!chore) return;
+    if (!chore.history) chore.history = {};
+
+    const isDone = !!chore.history[ds];
+    const isToday = ds === today.toDateString();
+
+    if (!isDone && chore.type === 'subject' && isToday) {
+        // Gate 1 — 2-hour cooldown
+        const rem = getCooldownRemaining(idx, ds);
+        if (rem > 0) {
+            showBanner('⏳ Cooldown! Try again in ' + fmtMs(rem), 'cooldown');
+            return;
+        }
+        // Gate 2 — 100pt daily cap
+        if (getTodayPoints() >= DAILY_PT_CAP) {
+            showBanner('🚫 Daily cap reached! Max 100 pts per day.', 'cap');
+            return;
+        }
+        // Gate 3 — 12 subject completions per day
+        if (getTodaySubjectClicks() >= DAILY_CLK_CAP) {
+            showBanner('🔒 Max 12 subject completions per day reached!', 'cap');
+            return;
+        }
+        // All gates passed — stamp the timestamp
+        if (!userData.completionTimestamps) userData.completionTimestamps = {};
+        userData.completionTimestamps[cellKey(idx, ds)] = Date.now();
+    }
+
+    // Un-marking — wipe the timestamp so cooldown resets
+    if (isDone && chore.type === 'subject') {
+        if (userData.completionTimestamps)
+            delete userData.completionTimestamps[cellKey(idx, ds)];
+    }
+
+    chore.history[ds] = !isDone;
     renderTable();
     syncToCloud();
 };
@@ -2355,8 +2487,31 @@ function renderTable() {
             const ds = d.toDateString();
             const done = c.history && c.history[ds];
             const isFuture = d.getTime() > today.getTime();
+            const isToday = d.getTime() === today.getTime();
+
             if (isFuture) {
                 html += `<td class="cell cell-locked" title="Future days — keep going!">${done ? '<span class="tick">✓</span>' : '<span style="color:#1e2d45;font-size:0.8rem;">🗓️</span>'}</td>`;
+            } else if (c.type === 'subject' && isToday && !done) {
+                // Subject + today + not yet done → check all three gates
+                const rem = getCooldownRemaining(i, ds);
+                const ptsCapped  = getTodayPoints() >= DAILY_PT_CAP;
+                const clkCapped  = getTodaySubjectClicks() >= DAILY_CLK_CAP;
+
+                if (rem > 0) {
+                    // Show greyed-out cell with live countdown
+                    const ck = cellKey(i, ds);
+                    html += `<td class="cell cell-cooldown" title="Cooldown active" data-ck="${ck}">
+                        <div class="cd-wrap">
+                          <span class="cd-icon">⏳</span>
+                          <span class="cd-time" id="cdt_${ck.replace(/[|\s]/g,'_')}">${fmtMs(rem)}</span>
+                        </div>
+                    </td>`;
+                } else if (ptsCapped || clkCapped) {
+                    const tip = ptsCapped ? 'Daily 100 pt cap reached' : 'Daily 12-click cap reached';
+                    html += `<td class="cell cell-capped" title="${tip}">🔒</td>`;
+                } else {
+                    html += `<td class="cell" onclick="toggleCell(${i},'${ds}')"></td>`;
+                }
             } else {
                 html += `<td class="cell" onclick="toggleCell(${i},'${ds}')">${done ? '<span class="tick">✓</span>' : ''}</td>`;
             }
@@ -2367,10 +2522,41 @@ function renderTable() {
     });
 
     renderDailyBadges();
+    startCooldownTickers();
 
     document.getElementById('goalInput').value = userData.dailyGoal;
     updateScoreCards();
     updateStreak();
+}
+
+// =============================================
+// COOLDOWN LIVE TICKERS
+// =============================================
+function startCooldownTickers() {
+    // Kill old tickers
+    Object.values(cdTickers).forEach(id => clearInterval(id));
+    cdTickers = {};
+
+    document.querySelectorAll('[data-ck]').forEach(cell => {
+        const ck   = cell.getAttribute('data-ck');
+        const parts = ck.split('||');
+        const idx  = parseInt(parts[0]);
+        const ds   = parts[1];
+        const safeId = 'cdt_' + ck.replace(/[|\s]/g, '_');
+        const el   = document.getElementById(safeId);
+        if (!el) return;
+
+        cdTickers[ck] = setInterval(() => {
+            const rem = getCooldownRemaining(idx, ds);
+            if (rem <= 0) {
+                clearInterval(cdTickers[ck]);
+                delete cdTickers[ck];
+                renderTable(); // cell becomes clickable
+            } else {
+                el.textContent = fmtMs(rem);
+            }
+        }, 1000);
+    });
 }
 
 // =============================================
