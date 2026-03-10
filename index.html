@@ -947,8 +947,6 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
 .tour-overlay.hidden { display: none; }
 .tour-overlay.active { pointer-events: all; }
 
-
-
 .tour-card {
     position: fixed;
     bottom: 32px;
@@ -1119,153 +1117,6 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
 .ai-assistant-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(99,102,241,0.5); }
 .ai-btn-icon { font-size: 1.2rem; }
 
-.ai-panel {
-    position: fixed;
-    bottom: 90px;
-    right: 28px;
-    width: 360px;
-    max-height: 520px;
-    background: var(--surface);
-    border: 1px solid rgba(99,102,241,0.3);
-    border-radius: 24px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-    z-index: 1500;
-    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    overflow: hidden;
-}
-.ai-panel.hidden { display: none; }
-
-.ai-panel-header {
-    padding: 18px 20px;
-    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.ai-header-btn {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.ai-header-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
-
-.ai-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-}
-
-.ai-msg {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-}
-.ai-msg-user { flex-direction: row-reverse; }
-
-.ai-msg-avatar {
-    width: 30px; height: 30px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-}
-
-.ai-msg-bubble {
-    max-width: 80%;
-    padding: 10px 14px;
-    border-radius: 16px;
-    font-size: 0.85rem;
-    line-height: 1.5;
-    color: var(--text);
-}
-.ai-msg-bot .ai-msg-bubble {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-top-left-radius: 4px;
-}
-.ai-msg-user .ai-msg-bubble {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-top-right-radius: 4px;
-}
-
-.ai-typing {
-    display: flex;
-    gap: 4px;
-    padding: 12px 14px;
-}
-.ai-typing span {
-    width: 6px; height: 6px;
-    background: var(--text2);
-    border-radius: 50%;
-    animation: typingDot 1.2s ease-in-out infinite;
-}
-.ai-typing span:nth-child(2) { animation-delay: 0.2s; }
-.ai-typing span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes typingDot {
-    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-    30% { transform: translateY(-6px); opacity: 1; }
-}
-
-.ai-input-row {
-    padding: 12px 16px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 8px;
-}
-.ai-input {
-    flex: 1;
-    padding: 10px 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: var(--text);
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.88rem;
-    outline: none;
-}
-.ai-input:focus { border-color: var(--accent); }
-.ai-input::placeholder { color: var(--text3); }
-
-.ai-send-btn {
-    background: var(--accent);
-    border: none;
-    color: white;
-    width: 40px; height: 40px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    flex-shrink: 0;
-}
-.ai-send-btn:hover { opacity: 0.9; transform: scale(1.05); }
-
-@media (max-width: 500px) {
-    .ai-panel { width: calc(100vw - 32px); right: 16px; }
-    .tour-card { bottom: 16px; }
-}
-
 /* ===== GOAL-BASED SCORE CARD ===== */
 .score-overflow {
     position: absolute;
@@ -1417,17 +1268,6 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
     <style>@keyframes splashBar{from{margin-left:0}to{margin-left:60%}}</style>
 </div>
 
-
-
-    <div style="color:#6366f1;font-weight:800;font-size:1.2rem;font-family:sans-serif;">Discipline Tracker</div>
-    <div style="width:40px;height:4px;background:#1e293b;border-radius:4px;overflow:hidden;">
-        <div style="height:100%;background:#6366f1;animation:ldbar 1.2s ease-in-out infinite;" id="ldbar"></div>
-    </div>
-</div>
-<style>
-@keyframes ldbar { 0%{width:0%} 50%{width:100%} 100%{width:0%;margin-left:100%} }
-</style>
-
 <!-- ===== AUTH SCREEN ===== -->
 <div id="authScreen" class="screen" style="display:none;">
     <div class="auth-bg">
@@ -1483,9 +1323,8 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
     <!-- SIDEBAR -->
     <nav class="sidebar">
         <div class="sidebar-logo">
-            <img src="logo.svg" alt="DT" style="width:32px;height:32px;filter:drop-shadow(0 0 8px rgba(99,102,241,0.5));">
-            <span style="font-weight:900;letter-spacing:0.05em;">DT</span>
-        </div
+            <span style="font-weight:900;letter-spacing:0.05em;">⚡ DT</span>
+        </div>
         <div class="nav-links">
             <a href="#" class="nav-link active" onclick="showTab('dashboard')">
                 <span class="nav-icon">📊</span><span class="nav-text">Dashboard</span>
@@ -1570,7 +1409,6 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
                 </div>
             </div>
             <div id="dailyBadgeRow" class="daily-badge-row" style="margin-bottom:24px;"></div>
-
 
             <!-- ALL-TIME CALENDAR -->
             <div class="section-header" style="margin-top:4px;">
@@ -1691,7 +1529,6 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
         <button onclick="checkUrl()" class="btn-auth btn-google" style="margin-bottom:14px;">🔍 Check URL</button>
         <div id="urlCheckResult" class="url-result"></div>
 
-        <!-- SCREENSHOT SECTION (shown on repeat offense) -->
         <div id="screenshotSection" style="display:none; margin-top:14px;">
             <p style="color:#f59e0b; font-size:0.85rem; font-weight:700; margin-bottom:8px;">📸 Please upload a screenshot of what you were doing:</p>
             <input type="file" id="screenshotInput" accept="image/*" class="auth-input" style="padding:8px;">
@@ -1729,7 +1566,6 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
 
 <!-- ===== ONBOARDING TOUR ===== -->
 <div id="tourOverlay" class="tour-overlay hidden">
-    <!-- SVG overlay with cutout -->
     <svg id="tourSvgOverlay" style="position:fixed;inset:0;pointer-events:none;z-index:2000;" xmlns="http://www.w3.org/2000/svg">
         <path id="tourCutout" fill="rgba(0,0,0,0.82)" fill-rule="evenodd" d="M0,0 H10000 V10000 H0 Z"/>
         <rect class="highlight" fill="none" stroke="#6366f1" stroke-width="2.5" rx="14" x="0" y="0" width="0" height="0">
@@ -1828,6 +1664,7 @@ const QUOTES = [
 // =============================================
 
 auth.onAuthStateChanged(async user => {
+    document.getElementById('loadingSplash').style.display = 'none';
     if (user) {
         currentUser = user;
         const doc = await db.collection('users').doc(user.uid).get();
@@ -1871,7 +1708,6 @@ window.saveUsername = async function () {
     if (!val || val.length < 3) { document.getElementById('usernameError').textContent = 'Username must be at least 3 characters.'; return; }
     if (val.length > 20) { document.getElementById('usernameError').textContent = 'Max 20 characters.'; return; }
 
-    // Check uniqueness
     const snap = await db.collection('users').where('username', '==', val).get();
     if (!snap.empty) { document.getElementById('usernameError').textContent = 'Username already taken. Try another.'; return; }
 
@@ -1914,6 +1750,8 @@ function showApp() {
     loadLeaderboard();
     loadFriends();
     renderProfile();
+    renderAllTimeCal();
+    maybeStartTour();
 }
 
 window.showTab = function (name) {
@@ -1975,22 +1813,11 @@ function renderDashboard() {
     updateStreak();
     updateTimeDisplay();
     updateSessionDisplay();
+    renderAllTimeCal();
 }
 
 // =============================================
 // SCORES
-// =============================================
-
-// =============================================
-// POINTS SYSTEM
-// 10 pts per subject done, 5 pts per habit done
-// Distractions subtract points (can go negative)
-// =============================================
-
-// =============================================
-// GOAL-BASED SCORING
-// Target = (subjectGoal * 10) + (habitCount * 5)
-// Over achieving = bonus pts + celebration
 // =============================================
 
 function getDailyTargetPts() {
@@ -2044,21 +1871,18 @@ function updateScoreCards() {
     const goalMet = s.today >= s.target && s.target > 0;
     const overAchieved = s.today > s.target && s.target > 0;
 
-    // Today's Points card
     const todayEl = document.getElementById('dailyScore');
     if (todayEl) {
         todayEl.textContent = s.today + ' pts';
         todayEl.style.color = s.today < 0 ? '#ef4444' : goalMet ? '#10b981' : '';
     }
 
-    // Target label
     const targetEl = document.getElementById('dailyTarget');
     if (targetEl) {
         targetEl.textContent = `Target: ${s.target} pts`;
         targetEl.style.color = goalMet ? '#10b981' : '#64748b';
     }
 
-    // Progress bar — goes to 100% at goal, then overflows in gold
     const fill = document.getElementById('dailyFill');
     if (fill) {
         fill.style.width = '0%';
@@ -2073,7 +1897,6 @@ function updateScoreCards() {
         }, 100);
     }
 
-    // Over-achieve overflow bar
     const overflow = document.getElementById('dailyOverflow');
     if (overflow) {
         if (overAchieved) {
@@ -2085,14 +1908,12 @@ function updateScoreCards() {
         }
     }
 
-    // Score card glow on goal met
     const card = document.getElementById('dailyScoreCard');
     if (card) {
         card.classList.toggle('goal-met', goalMet);
         card.classList.toggle('over-achieved', overAchieved);
     }
 
-    // Celebration on first goal hit
     if (goalMet && !lastCelebrated) {
         lastCelebrated = true;
         triggerGoalCelebration(overAchieved);
@@ -2100,14 +1921,12 @@ function updateScoreCards() {
         lastCelebrated = false;
     }
 
-    // Total points
     const totalEl = document.getElementById('weeklyScore');
     if (totalEl) {
         totalEl.textContent = s.total + ' pts';
         totalEl.style.color = s.total < 0 ? '#ef4444' : '';
     }
 
-    // Penalty
     const penaltyEl = document.getElementById('overallScore');
     if (penaltyEl) {
         penaltyEl.textContent = (s.penalty > 0 ? '-' : '') + s.penalty + ' pts';
@@ -2118,19 +1937,14 @@ function updateScoreCards() {
     document.getElementById('focusTotal').textContent = totalMins + 'm';
 }
 
-// =============================================
-// GOAL CELEBRATION
-// =============================================
 let celebrationShown = {};
 
 function triggerGoalCelebration(isOverAchieve) {
     if (celebrationShown[dStr]) return;
     celebrationShown[dStr] = true;
 
-    // Confetti burst
     if (window.confetti) {
         if (isOverAchieve) {
-            // Gold confetti for over-achieving
             confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 },
                 colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#10b981', '#6366f1'] });
             setTimeout(() => confetti({ particleCount: 80, spread: 100, origin: { y: 0.5 },
@@ -2140,7 +1954,6 @@ function triggerGoalCelebration(isOverAchieve) {
         }
     }
 
-    // Play cheer sound
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const notes = isOverAchieve ? [523, 659, 784, 1047] : [523, 659, 784];
@@ -2157,7 +1970,6 @@ function triggerGoalCelebration(isOverAchieve) {
         });
     } catch(e) {}
 
-    // Show celebration toast
     showCelebrationToast(isOverAchieve);
 }
 
@@ -2185,14 +1997,10 @@ function showCelebrationToast(isOverAchieve) {
 // =============================================
 
 function updateStreak() {
-    // Only count today for streak (future days don't count)
-    // Use Firestore stored streak + today's score
     let streak = userData.streak || 0;
     const todayScore = getSubjectScore(dStr);
-    // If today is 100%, increment streak, otherwise keep as is
     if (todayScore === 100) {
         streak = (userData.streak || 0);
-        // Check if streak was already updated today
         if (userData.lastStreakDate !== dStr) {
             streak++;
             userData.lastStreakDate = dStr;
@@ -2255,7 +2063,6 @@ function showBadgeAward(badge) {
     document.getElementById('badgeDescText').textContent = badge.desc;
     document.getElementById('badgeOverlay').classList.remove('hidden');
 
-    // Sound effect
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         [523, 659, 784, 1047].forEach((freq, i) => {
@@ -2427,7 +2234,6 @@ window.deleteItem = function (idx) {
 };
 
 window.toggleCell = function (idx, ds) {
-    // Block editing future days
     const cellDate = new Date(ds);
     cellDate.setHours(0,0,0,0);
     if (cellDate.getTime() > today.getTime()) return;
@@ -2472,8 +2278,7 @@ function renderTable() {
         tr.innerHTML = html;
         tbody.appendChild(tr);
     });
-    
-    // Daily completion badge row
+
     renderDailyBadges();
 
     document.getElementById('goalInput').value = userData.dailyGoal;
@@ -2565,7 +2370,6 @@ window.addFriend = async function () {
     if (friendDoc.id === currentUser.uid) { errEl.textContent = "That's you!"; return; }
     if ((userData.friends || []).includes(friendDoc.id)) { errEl.textContent = 'Already friends.'; return; }
 
-    // Send friend request
     await db.collection('users').doc(friendDoc.id).update({
         friendRequests: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
     });
@@ -2657,7 +2461,7 @@ function renderProfile() {
                 <div class="profile-stats-row">
                     <div class="profile-stat">🔥 Streak: <b>${userData.streak || 0} days</b></div>
                     <div class="profile-stat">⏱ Focus: <b>${totalMins} mins</b></div>
-                    <div class="profile-stat">📊 Score: <b>${scores.overall}%</b></div>
+                    <div class="profile-stat">📊 Score: <b>${scores.today} pts</b></div>
                     <div class="profile-stat">🎖️ Badges: <b>${earned.length}</b></div>
                 </div>
             </div>
@@ -2668,7 +2472,6 @@ function renderProfile() {
         </div>`;
 }
 
-// View another user's profile
 window.viewProfile = async function (uid) {
     if (uid === currentUser.uid) { showTab('profile'); return; }
     const doc = await db.collection('users').doc(uid).get();
@@ -2732,7 +2535,7 @@ function renderDailyBadges() {
         const isToday = d.getTime() === today.getTime();
         const isPast = d.getTime() < today.getTime();
         const dayLabel = d.toLocaleDateString(undefined, { weekday: 'short' });
-        
+
         const isFuture = d.getTime() > today.getTime();
         let icon = isFuture ? '🗓️' : '⬜';
         let title = isFuture ? 'Upcoming' : 'Not started yet';
@@ -2756,46 +2559,25 @@ function renderDailyBadges() {
 
 // =============================================
 // DISTRACTION TRACKER
-// No focus mode toggle — always watching tab switches
-// Social media (except YouTube & Facebook) triggers check after 5 mins
 // =============================================
 
 const SOCIAL_MEDIA_SITES = [
-    'instagram.com',
-    'tiktok.com',
-    'twitter.com',
-    'x.com',
-    'snapchat.com',
-    'reddit.com',
-    'twitch.tv',
-    'pinterest.com',
-    'tumblr.com',
-    'discord.com',
+    'instagram.com', 'tiktok.com', 'twitter.com', 'x.com',
+    'snapchat.com', 'reddit.com', 'twitch.tv', 'pinterest.com',
+    'tumblr.com', 'discord.com',
 ];
 
-// Sites always allowed
 const ALLOWED_SITES = [
-    'online.udvash-unmesh.com',
-    'hulkenstein.com',
-    'aparsclassroom.com',
-    'acsfutureschool.com',
-    'bondipathshala.com.bd',
-    '10minuteschool.com',
-    'mentors.com.bd',
-    'meet.google.com',
-    'zoom.us',
-    'docs.google.com',
-    'khanacademy.org',
-    'classroom.google.com',
-    'youtube.com',
-    'facebook.com',
+    'online.udvash-unmesh.com', 'hulkenstein.com', 'aparsclassroom.com',
+    'acsfutureschool.com', 'bondipathshala.com.bd', '10minuteschool.com',
+    'mentors.com.bd', 'meet.google.com', 'zoom.us', 'docs.google.com',
+    'khanacademy.org', 'classroom.google.com', 'youtube.com', 'facebook.com',
 ];
 
 let tabHiddenTime = null;
 let lastDistractionDomain = null;
-let firstOffenseDomains = {}; // domain -> true if warned once
+let firstOffenseDomains = {};
 
-// Always track tab switches
 document.addEventListener('visibilitychange', onVisibilityChange);
 window.addEventListener('blur', () => { if (!tabHiddenTime) tabHiddenTime = Date.now(); });
 window.addEventListener('focus', onWindowFocus);
@@ -2811,7 +2593,6 @@ function onVisibilityChange() {
 function onWindowFocus() {
     const away = tabHiddenTime ? Math.round((Date.now() - tabHiddenTime) / 1000) : 0;
     tabHiddenTime = null;
-    // Only ask if away for more than 5 minutes (300 seconds)
     if (away >= 300) {
         setTimeout(() => showDistractionCheck(away), 600);
     }
@@ -2844,7 +2625,6 @@ window.checkUrl = function () {
         return;
     }
 
-    // Check allowed
     for (const site of ALLOWED_SITES) {
         if (hostname.includes(site) || site.includes(hostname)) {
             resultEl.textContent = '✅ This is an allowed site — great job staying focused!';
@@ -2854,19 +2634,16 @@ window.checkUrl = function () {
         }
     }
 
-    // Check if social media
     const isSocial = SOCIAL_MEDIA_SITES.some(s => hostname.includes(s));
     if (isSocial) {
         const isRepeat = firstOffenseDomains[hostname] === true;
         if (isRepeat) {
-            // Second visit — ask for screenshot
             lastDistractionDomain = hostname;
             resultEl.textContent = `⚠️ You visited ${hostname} again. Please upload a screenshot to verify.`;
             resultEl.className = 'url-result warn';
             document.getElementById('screenshotSection').style.display = 'block';
             showPopupActions('screenshot', hostname);
         } else {
-            // First time seeing this domain — ask if distraction
             lastDistractionDomain = hostname;
             resultEl.textContent = `📱 ${hostname} is a social media site. Was this a distraction?`;
             resultEl.className = 'url-result unknown';
@@ -2875,7 +2652,6 @@ window.checkUrl = function () {
         return;
     }
 
-    // Unknown site
     resultEl.textContent = `❓ Unknown site (${hostname}). Was this a distraction?`;
     resultEl.className = 'url-result unknown';
     showPopupActions('unknown', hostname);
@@ -2889,19 +2665,16 @@ function showPopupActions(type, domain) {
         yesBtn.style.display = 'none';
         noBtn.textContent = '✅ Got it!';
         noBtn.onclick = () => { closeUrlPopup(); };
-
     } else if (type === 'social-first') {
         yesBtn.style.display = 'inline-flex';
         yesBtn.textContent = '😔 Yes, it was';
         yesBtn.onclick = () => admitDistraction(domain, false);
         noBtn.textContent = '🙂 No, I had a reason';
         noBtn.onclick = () => denyDistraction(domain);
-
     } else if (type === 'screenshot') {
         yesBtn.style.display = 'none';
         noBtn.textContent = '📤 Submit Screenshot';
         noBtn.onclick = () => analyzeScreenshot(domain);
-
     } else if (type === 'unknown') {
         yesBtn.style.display = 'inline-flex';
         yesBtn.textContent = '❌ Yes, distraction';
@@ -2916,7 +2689,6 @@ function admitDistraction(domain, isRepeat) {
     const resultEl = document.getElementById('urlCheckResult');
 
     if (!isRepeat) {
-        // First admission — warn, no penalty yet
         resultEl.innerHTML = `
             <b>🙏 Thank you for being honest!</b><br><br>
             ⚠️ <b>Warning:</b> Next time you visit ${domain} and admit it's a distraction, you'll lose <b>5 points</b>.<br><br>
@@ -2926,7 +2698,6 @@ function admitDistraction(domain, isRepeat) {
         document.getElementById('urlPopupAllowBtn').textContent = 'I understand 🙏';
         document.getElementById('urlPopupAllowBtn').onclick = () => closeUrlPopup();
     } else {
-        // Second admission — subtract 5 points
         userData.distractionPenalty = (userData.distractionPenalty || 0) + 5;
         updateTotalPoints(-5);
         syncToCloud();
@@ -2952,7 +2723,6 @@ function denyDistraction(domain) {
     document.getElementById('urlPopupAllowBtn').onclick = () => closeUrlPopup();
 }
 
-// ---- SCREENSHOT ANALYSIS via Claude API ----
 window.analyzeScreenshot = async function (domain) {
     const input = document.getElementById('screenshotInput');
     const resultEl = document.getElementById('screenshotResult');
@@ -2977,7 +2747,6 @@ window.analyzeScreenshot = async function (domain) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': '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',
                 'anthropic-version': '2023-06-01',
                 'anthropic-dangerous-direct-browser-access': 'true'
             },
@@ -3058,7 +2827,6 @@ function playWarningSound() {
     } catch(e) {}
 }
 
-
 // =============================================
 // ALL-TIME CALENDAR
 // =============================================
@@ -3085,12 +2853,10 @@ function renderAllTimeCal() {
     const target = getDailyTargetPts();
 
     let html = '<div class="cal-grid">';
-    // Day headers
     ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
         html += `<div class="cal-day-header">${d}</div>`;
     });
 
-    // Empty cells before first day
     for (let i = 0; i < firstDay; i++) {
         html += '<div class="cal-cell cal-empty"></div>';
     }
@@ -3103,7 +2869,6 @@ function renderAllTimeCal() {
         const isToday = ds === today.toDateString();
         const isFuture = date > today;
         const penalty = userData.distractionPenalty || 0;
-        const net = pts - (isToday ? penalty : 0);
 
         let cls = 'cal-cell';
         let icon = '';
@@ -3140,7 +2905,6 @@ function renderAllTimeCal() {
 
     html += '</div>';
 
-    // Legend
     html += `<div class="cal-legend">
         <span class="cal-leg cal-goal">✅ Goal</span>
         <span class="cal-leg cal-legendary">🌟 Legendary</span>
@@ -3192,21 +2956,6 @@ const TOUR_STEPS = [
         text: "📅 Set your <b>Next Exam</b> date here to see a live countdown. Nothing like a deadline to keep you focused! 😤"
     },
     {
-        target: 'a[onclick*="leaderboard"]',
-        switchTab: 'leaderboard',
-        text: "🏆 The <b>Leaderboard</b> shows how you rank against other students by points or study hours. Friendly competition = extra motivation!"
-    },
-    {
-        target: 'a[onclick*="friends"]',
-        switchTab: 'friends',
-        text: "👫 The <b>Friends</b> tab lets you search for classmates by username, send friend requests, and track their progress together!"
-    },
-    {
-        target: 'a[onclick*="profile"]',
-        switchTab: 'profile',
-        text: "👤 Your <b>Profile</b> shows all your earned badges, streak, total focus time, and overall score. Keep the streak alive — it only takes one day to break it!"
-    },
-    {
         target: null,
         text: "🎉 That's everything! You're all set to start your discipline journey. Remember: <b>small consistent actions beat big occasional efforts</b>. Now go crush it! 🔥"
     }
@@ -3228,13 +2977,11 @@ function renderTourStep() {
     const step = TOUR_STEPS[tourStep];
     document.getElementById('tourText').innerHTML = step.text;
 
-    // Dots
     const dots = document.getElementById('tourDots');
     dots.innerHTML = TOUR_STEPS.map((_, i) =>
         `<div class="tour-dot ${i === tourStep ? 'active' : ''}"></div>`
     ).join('');
 
-    // Next/Prev button labels
     document.getElementById('tourNextBtn').textContent =
         tourStep === TOUR_STEPS.length - 1 ? "Let's go! 🚀" : 'Next →';
     const prevBtn = document.getElementById('tourPrevBtn');
@@ -3258,28 +3005,20 @@ function renderTourStep() {
 
         let left, top;
 
-        // Try RIGHT of element
         if (rect.right + margin + cardW < vw) {
             left = rect.right + margin;
             top = rect.top + rect.height / 2 - cardH / 2;
-        }
-        // Try LEFT of element
-        else if (rect.left - margin - cardW > 0) {
+        } else if (rect.left - margin - cardW > 0) {
             left = rect.left - margin - cardW;
             top = rect.top + rect.height / 2 - cardH / 2;
-        }
-        // Try ABOVE element
-        else if (rect.top - margin - cardH > 0) {
+        } else if (rect.top - margin - cardH > 0) {
             left = vw / 2 - cardW / 2;
             top = rect.top - margin - cardH;
-        }
-        // Default BELOW element
-        else {
+        } else {
             left = vw / 2 - cardW / 2;
             top = rect.bottom + margin;
         }
 
-        // Clamp within viewport
         left = Math.max(margin, Math.min(left, vw - cardW - margin));
         top = Math.max(margin, Math.min(top, vh - cardH - margin));
 
@@ -3289,7 +3028,6 @@ function renderTourStep() {
         card.style.transform = 'none';
     }
 
-    // Update SVG overlay to create cutout effect
     function updateOverlay(rect) {
         const pad = 12;
         const x = rect.left - pad;
@@ -3298,7 +3036,7 @@ function renderTourStep() {
         const h = rect.height + pad * 2;
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        const r = 14; // border radius
+        const r = 14;
 
         const svgEl = document.getElementById('tourSvgOverlay');
         if (svgEl) {
@@ -3306,12 +3044,10 @@ function renderTourStep() {
             svgEl.setAttribute('width', vw);
             svgEl.setAttribute('height', vh);
             const pathEl = svgEl.querySelector('path');
-            // Outer rect + rounded inner cutout using even-odd rule
             pathEl.setAttribute('d',
                 `M0,0 H${vw} V${vh} H0 Z ` +
                 `M${x+r},${y} H${x+w-r} Q${x+w},${y} ${x+w},${y+r} V${y+h-r} Q${x+w},${y+h} ${x+w-r},${y+h} H${x+r} Q${x},${y+h} ${x},${y+h-r} V${y+r} Q${x},${y} ${x+r},${y} Z`
             );
-            // Highlight border
             const rectEl = svgEl.querySelector('rect.highlight');
             if (rectEl) {
                 rectEl.setAttribute('x', x);
@@ -3324,12 +3060,7 @@ function renderTourStep() {
     }
 
     if (step.target) {
-        // Switch tab first if needed
-        if (step.switchTab) {
-            showTab(step.switchTab);
-        } else {
-            showTab('dashboard');
-        }
+        showTab(step.switchTab || 'dashboard');
         setTimeout(() => {
             const el = document.querySelector(step.target);
             if (el) {
@@ -3373,15 +3104,9 @@ function endTour() {
     tourActive = false;
     document.getElementById('tourOverlay').classList.add('hidden');
     document.getElementById('tourOverlay').classList.remove('active');
-    // Mark tour as seen in localStorage
     try { localStorage.setItem('dt_tour_seen', '1'); } catch(e) {}
 }
 
-window.restartTour = function () {
-    startTour();
-};
-
-// Auto-start for new users
 function maybeStartTour() {
     try {
         if (!localStorage.getItem('dt_tour_seen')) {
