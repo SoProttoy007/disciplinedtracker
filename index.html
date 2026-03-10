@@ -33,8 +33,8 @@ body {
 }
 
 /* ===== SCREENS ===== */
-.screen { display: none; }
-.screen.active { display: flex; }
+.screen { display: none !important; }
+.screen.active { display: flex !important; }
 
 /* ===== AUTH ===== */
 #authScreen, #usernameScreen {
@@ -1461,7 +1461,7 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
 </div>
 
 <!-- ===== MAIN APP ===== -->
-<div id="appScreen" class="screen" style="display:none!important;">
+<div id="appScreen" class="screen" style="display:none;">
 
     <!-- SIDEBAR -->
     <nav class="sidebar">
@@ -1838,14 +1838,19 @@ auth.signOut = auth.signOut.bind(auth);
 // =============================================
 
 function showScreen(id) {
-    // Hide ALL screens first
     ['authScreen','usernameScreen','appScreen'].forEach(sid => {
         const s = document.getElementById(sid);
-        if (s) { s.classList.remove('active'); s.style.display = 'none'; }
+        if (s) {
+            s.classList.remove('active');
+            s.style.cssText = s.style.cssText.replace(/display\s*:[^;]+;?/gi, '');
+            s.style.display = 'none';
+        }
     });
-    // Show only the requested one
     const el = document.getElementById(id);
-    if (el) { el.classList.add('active'); el.style.display = 'flex'; }
+    if (el) {
+        el.classList.add('active');
+        el.style.display = 'flex';
+    }
 }
 
 function showApp() {
