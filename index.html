@@ -2983,9 +2983,9 @@ function renderAllTimeCal() {
 
         if (isToday) cls += ' cal-today';
 
-        const clickable = !isFuture ? `onclick="showDayDetail('${ds}')" style="cursor:pointer;"` : '';
+        const clickAttr = !isFuture ? `data-ds="${ds}" style="cursor:pointer;"` : '';
 
-        html += `<div class="${cls}" title="${title}" ${clickable}>
+        html += `<div class="${cls}" title="${title}" ${clickAttr}>
             <span class="cal-date">${d}</span>
             <span class="cal-icon">${icon}</span>
             ${pts > 0 ? `<span class="cal-pts">${pts}</span>` : ''}
@@ -3002,6 +3002,11 @@ function renderAllTimeCal() {
     </div>`;
 
     container.innerHTML = html;
+
+    // Delegated click — read ds from data attribute to avoid inline quote issues
+    container.querySelectorAll('[data-ds]').forEach(cell => {
+        cell.addEventListener('click', () => showDayDetail(cell.getAttribute('data-ds')));
+    });
 }
 
 // =============================================
