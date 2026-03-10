@@ -1752,6 +1752,8 @@ function showApp() {
     loadFriends();
     renderProfile();
     renderAllTimeCal();
+    // Always re-sync on load to ensure overallScore/totalPoints are up to date in Firestore
+    syncToCloud();
     maybeStartTour();
 }
 
@@ -2331,7 +2333,7 @@ async function loadLeaderboard() {
         const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
         const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
         const badges = (d.badges || []).map(b => { const def = BADGES.find(x => x.id === b.id); return def ? def.icon : ''; }).join('');
-        const val = lbMode === 'hours' ? (d.totalFocusMins || 0) + ' mins' : (d.totalPoints || 0) + ' pts';
+        const val = lbMode === 'hours' ? (d.totalFocusMins || 0) + ' mins' : (d.overallScore || 0) + ' pts';
         list.innerHTML += `
             <div class="lb-item ${rankClass}" onclick="viewProfile('${doc.id}')">
                 <div class="lb-rank">${rankEmoji}</div>
@@ -2429,7 +2431,7 @@ async function loadFriendsLeaderboard() {
     const sorted = allUsers
         .filter(d => d.exists && d.data().username)
         .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+        .sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0));
 
     list.innerHTML = '';
     sorted.forEach((u, i) => {
@@ -2445,7 +2447,7 @@ async function loadFriendsLeaderboard() {
                     <div class="lb-name">${u.username}${isMe ? ' (you)' : ''}</div>
                     <div class="lb-meta">${badges || 'No badges yet'}</div>
                 </div>
-                <div class="lb-value">${u.totalPoints || 0} pts</div>
+                <div class="lb-value">${u.overallScore || 0} pts</div>
             </div>`;
     });
 
@@ -2516,7 +2518,7 @@ window.viewProfile = async function (uid) {
                 <div class="profile-stats-row">
                     <div class="profile-stat">🔥 Streak: <b>${d.streak || 0} days</b></div>
                     <div class="profile-stat">⏱ Focus: <b>${totalMins} mins</b></div>
-                    <div class="profile-stat">📊 Score: <b>${d.totalPoints || 0} pts</b></div>
+                    <div class="profile-stat">📊 Score: <b>${d.overallScore || 0} pts</b></div>
                     <div class="profile-stat">🎖️ Badges: <b>${earned.length}</b></div>
                 </div>
                 ${!isFriend ? `<button class="btn-sm btn-start" style="margin-top:10px;" onclick="sendFriendFromModal('${uid}','${name}')">+ Add Friend</button>` : '<span style="color:#10b981;font-size:0.85rem;margin-top:8px;display:block;">✓ Friends</span>'}
@@ -2972,6 +2974,21 @@ const TOUR_STEPS = [
     {
         target: '#examDays',
         text: "📅 Set your <b>Next Exam</b> date here to see a live countdown. Nothing like a deadline to keep you focused! 😤"
+    },
+    {
+        target: '#globalLBList',
+        switchTab: 'leaderboard',
+        text: "🏆 The <b>Global Leaderboard</b> ranks all students by study hours or total points. Compete with everyone and climb to the top! Switch tabs to see both rankings."
+    },
+    {
+        target: '#friendsLBList',
+        switchTab: 'friends',
+        text: "👥 The <b>Friends</b> tab lets you add classmates by username, accept friend requests, and see a private leaderboard with just your crew. Friendly competition hits different! 🔥"
+    },
+    {
+        target: '#profileContent',
+        switchTab: 'profile',
+        text: "🎖️ Your <b>Profile</b> shows your total score, streak, focus time, and all earned badges. This is your trophy room — fill it up! Keep your streak alive because one missed day resets it."
     },
     {
         target: null,
