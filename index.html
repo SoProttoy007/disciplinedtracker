@@ -1255,6 +1255,65 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
 .cal-leg.cal-legendary { background: rgba(245,158,11,0.12); color: #f59e0b; }
 .cal-leg.cal-partial { background: rgba(245,158,11,0.08); color: #fbbf24; }
 .cal-leg.cal-miss { background: rgba(255,255,255,0.04); }
+
+/* ===== DAY DETAIL MODAL ===== */
+.day-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+.day-detail-icon { font-size: 2.4rem; flex-shrink: 0; }
+.day-detail-date { font-size: 1.1rem; font-weight: 800; color: var(--text); }
+.day-detail-pts {
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-top: 4px;
+    display: inline-block;
+}
+.day-pts-goal    { background: rgba(16,185,129,0.15); color: #10b981; }
+.day-pts-legend  { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.day-pts-partial { background: rgba(99,102,241,0.15); color: #818cf8; }
+.day-pts-miss    { background: rgba(255,255,255,0.06); color: var(--text3); }
+
+.day-detail-section { margin-bottom: 16px; }
+.day-detail-section-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text2);
+    margin-bottom: 10px;
+}
+.day-task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    margin-bottom: 7px;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+.day-task-item.done  { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.06); color: var(--text); }
+.day-task-item.miss  { opacity: 0.45; }
+.day-task-check { font-size: 1rem; flex-shrink: 0; }
+.day-task-name  { flex: 1; }
+.day-task-pts   { font-size: 0.78rem; font-weight: 700; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+.day-task-item.done .day-task-pts { color: #10b981; }
+
+.day-empty-msg {
+    text-align: center;
+    color: var(--text3);
+    font-size: 0.88rem;
+    padding: 20px 0;
+}
     </style>
 </head>
 <body>
@@ -1560,6 +1619,14 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
     <div class="profile-modal">
         <button onclick="closeProfileModal()" class="modal-close">✕</button>
         <div id="profileModalContent"></div>
+    </div>
+</div>
+
+<!-- DAY DETAIL MODAL -->
+<div id="dayDetailModal" class="badge-overlay hidden" onclick="closeDayDetailModal(event)">
+    <div class="profile-modal" style="max-width:480px;" onclick="event.stopPropagation()">
+        <button onclick="closeDayDetailModal()" class="modal-close">✕</button>
+        <div id="dayDetailContent"></div>
     </div>
 </div>
 
@@ -2916,7 +2983,9 @@ function renderAllTimeCal() {
 
         if (isToday) cls += ' cal-today';
 
-        html += `<div class="${cls}" title="${title}">
+        const clickable = !isFuture ? `onclick="showDayDetail('${ds}')" style="cursor:pointer;"` : '';
+
+        html += `<div class="${cls}" title="${title}" ${clickable}>
             <span class="cal-date">${d}</span>
             <span class="cal-icon">${icon}</span>
             ${pts > 0 ? `<span class="cal-pts">${pts}</span>` : ''}
@@ -2934,6 +3003,84 @@ function renderAllTimeCal() {
 
     container.innerHTML = html;
 }
+
+// =============================================
+// DAY DETAIL MODAL
+// =============================================
+
+window.showDayDetail = function(ds) {
+    const date = new Date(ds);
+    const dateLabel = date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const pts = getSubjectScore(ds);
+    const target = getDailyTargetPts();
+    const isToday = ds === today.toDateString();
+
+    // Determine status
+    let statusIcon, statusLabel, ptsClass;
+    if (pts === 0) {
+        statusIcon = '😴'; statusLabel = 'No activity'; ptsClass = 'day-pts-miss';
+    } else if (target > 0 && pts >= target * 1.2) {
+        statusIcon = '🌟'; statusLabel = 'Legendary!'; ptsClass = 'day-pts-legend';
+    } else if (target > 0 && pts >= target) {
+        statusIcon = '✅'; statusLabel = 'Goal Met!'; ptsClass = 'day-pts-goal';
+    } else {
+        statusIcon = '🔥'; statusLabel = 'Partial'; ptsClass = 'day-pts-partial';
+    }
+
+    // Split into subjects and habits
+    const subjects = userData.chores.filter(c => c.type === 'subject');
+    const habits   = userData.chores.filter(c => c.type === 'habit');
+
+    function taskRows(items, ptsPer) {
+        if (!items.length) return '<div class="day-empty-msg">None added</div>';
+        return items.map(c => {
+            const done = c.history && c.history[ds];
+            return `<div class="day-task-item ${done ? 'done' : 'miss'}">
+                <span class="day-task-check">${done ? '✅' : '⬜'}</span>
+                <span class="day-task-name">${c.name}</span>
+                <span class="day-task-pts">${done ? '+' + ptsPer + ' pts' : '—'}</span>
+            </div>`;
+        }).join('');
+    }
+
+    const hasAny = subjects.length || habits.length;
+
+    document.getElementById('dayDetailContent').innerHTML = `
+        <div class="day-detail-header">
+            <div class="day-detail-icon">${statusIcon}</div>
+            <div>
+                <div class="day-detail-date">${isToday ? 'Today — ' : ''}${dateLabel}</div>
+                <span class="day-detail-pts ${ptsClass}">${pts} pts earned · ${statusLabel}</span>
+            </div>
+        </div>
+
+        ${!hasAny ? `<div class="day-empty-msg">No subjects or habits were tracked on this day.</div>` : `
+        ${subjects.length ? `
+        <div class="day-detail-section">
+            <div class="day-detail-section-title">📖 Subjects</div>
+            ${taskRows(subjects, 10)}
+        </div>` : ''}
+
+        ${habits.length ? `
+        <div class="day-detail-section">
+            <div class="day-detail-section-title">✅ Habits</div>
+            ${taskRows(habits, 5)}
+        </div>` : ''}
+
+        <div style="padding:12px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <span style="font-size:0.82rem;color:var(--text2);font-weight:700;">TARGET</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:0.95rem;color:${pts >= target && target > 0 ? '#10b981' : 'var(--text2)'};">${target > 0 ? pts + ' / ' + target + ' pts' : pts + ' pts'}</span>
+        </div>`}
+    `;
+
+    document.getElementById('dayDetailModal').classList.remove('hidden');
+};
+
+window.closeDayDetailModal = function(e) {
+    if (!e || e.target === document.getElementById('dayDetailModal')) {
+        document.getElementById('dayDetailModal').classList.add('hidden');
+    }
+};
 
 // =============================================
 // ONBOARDING TOUR
