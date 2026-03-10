@@ -1802,7 +1802,7 @@ async function syncToCloud() {
         lastActive: dStr,
         totalPoints: getTotalPoints(),
         distractionPenalty: userData.distractionPenalty || 0,
-        overallScore: Math.max(todayPts, 0),
+        overallScore: getTotalPoints(),
         totalFocusMins: totalMins,
         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
@@ -2429,7 +2429,7 @@ async function loadFriendsLeaderboard() {
     const sorted = allUsers
         .filter(d => d.exists && d.data().username)
         .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0));
+        .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
 
     list.innerHTML = '';
     sorted.forEach((u, i) => {
@@ -2445,7 +2445,7 @@ async function loadFriendsLeaderboard() {
                     <div class="lb-name">${u.username}${isMe ? ' (you)' : ''}</div>
                     <div class="lb-meta">${badges || 'No badges yet'}</div>
                 </div>
-                <div class="lb-value">${u.overallScore || 0}%</div>
+                <div class="lb-value">${u.totalPoints || 0} pts</div>
             </div>`;
     });
 
@@ -2479,7 +2479,7 @@ function renderProfile() {
                 <div class="profile-stats-row">
                     <div class="profile-stat">🔥 Streak: <b>${userData.streak || 0} days</b></div>
                     <div class="profile-stat">⏱ Focus: <b>${totalMins} mins</b></div>
-                    <div class="profile-stat">📊 Score: <b>${scores.today} pts</b></div>
+                    <div class="profile-stat">📊 Score: <b>${getTotalPoints()} pts</b></div>
                     <div class="profile-stat">🎖️ Badges: <b>${earned.length}</b></div>
                 </div>
             </div>
@@ -2516,7 +2516,7 @@ window.viewProfile = async function (uid) {
                 <div class="profile-stats-row">
                     <div class="profile-stat">🔥 Streak: <b>${d.streak || 0} days</b></div>
                     <div class="profile-stat">⏱ Focus: <b>${totalMins} mins</b></div>
-                    <div class="profile-stat">📊 Score: <b>${d.overallScore || 0}%</b></div>
+                    <div class="profile-stat">📊 Score: <b>${d.totalPoints || 0} pts</b></div>
                     <div class="profile-stat">🎖️ Badges: <b>${earned.length}</b></div>
                 </div>
                 ${!isFriend ? `<button class="btn-sm btn-start" style="margin-top:10px;" onclick="sendFriendFromModal('${uid}','${name}')">+ Add Friend</button>` : '<span style="color:#10b981;font-size:0.85rem;margin-top:8px;display:block;">✓ Friends</span>'}
