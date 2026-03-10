@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/svg+xml" href="./logo.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discipline Tracker</title>
@@ -1454,7 +1453,7 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
                     <button onclick="addSubject()" class="btn-sm btn-subject">+ Subject</button>
                     <input type="text" id="habitInput" placeholder="Add Habit..." class="task-input">
                     <button onclick="addHabit()" class="btn-sm btn-habit">+ Habit</button>
-                    <div class="goal-set">
+                    <div class="goal-set" id="goalSetWrapper">
                         <label>Goal:</label>
                         <input type="number" id="goalInput" value="2" min="1" onchange="saveGoal()" class="goal-input">
                     </div>
@@ -1792,7 +1791,7 @@ async function syncToCloud() {
         friendRequests: userData.friendRequests,
         streak: userData.streak,
         lastActive: dStr,
-        totalPoints: userData.totalPoints || 0,
+        totalPoints: getTotalPoints(),
         distractionPenalty: userData.distractionPenalty || 0,
         overallScore: Math.max(todayPts, 0),
         totalFocusMins: totalMins,
@@ -1837,7 +1836,16 @@ function getTodayPoints() {
 }
 
 function getTotalPoints() {
-    return userData.totalPoints || 0;
+    // Recompute from all historical chore data so it's always accurate
+    let total = 0;
+    userData.chores.forEach(c => {
+        if (!c.history) return;
+        const pts = c.type === 'subject' ? 10 : 5;
+        Object.values(c.history).forEach(done => { if (done) total += pts; });
+    });
+    // Subtract all-time distraction penalties
+    total -= (userData.distractionPenalty || 0);
+    return total;
 }
 
 function getSubjectScore(ds) {
@@ -2937,7 +2945,7 @@ const TOUR_STEPS = [
         text: "📅 The <b>Daily Badge Row</b> shows your week at a glance. Today is highlighted in purple. Complete all subjects to earn a daily badge!"
     },
     {
-        target: '#goalInput',
+        target: '#goalSetWrapper',
         text: "🎯 This is your <b>Daily Subject Goal</b>. Set how many subjects you want to complete per day. Your daily target score is calculated as: <b>(goal × 10) + (habits × 5)</b>. Higher goal = higher target!"
     },
     {
@@ -3118,5 +3126,3 @@ function maybeStartTour() {
 </script>
 </body>
 </html>
-
-
