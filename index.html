@@ -1759,7 +1759,15 @@ window.showTab = function (name) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
-    event.currentTarget.classList.add('active');
+    // Safe: only use event.currentTarget when called from a real click
+    try {
+        if (event && event.currentTarget) event.currentTarget.classList.add('active');
+    } catch(e) {
+        // Called programmatically (tour) — highlight matching nav link
+        document.querySelectorAll('.nav-link').forEach(l => {
+            if ((l.getAttribute('onclick') || '').includes("'" + name + "'")) l.classList.add('active');
+        });
+    }
     if (name === 'leaderboard') loadLeaderboard();
     if (name === 'friends') loadFriends();
     if (name === 'profile') renderProfile();
@@ -3074,17 +3082,18 @@ function renderTourStep() {
         setTimeout(() => {
             const el = document.querySelector(step.target);
             if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Use instant scroll so getBoundingClientRect is accurate immediately after
+                el.scrollIntoView({ behavior: 'instant', block: 'center' });
                 setTimeout(() => {
                     const rect = el.getBoundingClientRect();
                     updateOverlay(rect);
                     positionCard(rect);
-                }, 400);
+                }, 100);
             } else {
                 updateOverlay({ left: 0, top: 0, width: 0, height: 0 });
                 centerCard();
             }
-        }, 150);
+        }, 200);
     } else {
         showTab('dashboard');
         updateOverlay({ left: 0, top: 0, width: 0, height: 0 });
@@ -3127,4 +3136,3 @@ function maybeStartTour() {
 </script>
 </body>
 </html>
-
