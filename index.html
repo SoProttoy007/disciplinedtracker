@@ -4,7 +4,18 @@
     <link rel="icon" type="image/svg+xml" href="./logo.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discipline Tracker</title>
+    <title>Discipline Tracker — Build Your Best Self</title>
+    <meta name="title" content="Discipline Tracker — Build Your Best Self">
+    <meta name="description" content="A simple, powerful tool to track your daily habits and stay disciplined. Built with Firebase.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://soprottoy007.github.io/disciplinedtracker/">
+    <meta property="og:title" content="Discipline Tracker — Build Your Best Self">
+    <meta property="og:description" content="Stop making excuses. Start tracking your progress today.">
+    <meta property="og:image" content="https://soprottoy007.github.io/disciplinedtracker/logo.svg">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Discipline Tracker">
+    <meta property="twitter:description" content="Track your daily wins with ease.">
+    <meta property="twitter:image" content="https://soprottoy007.github.io/disciplinedtracker/logo.svg">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
@@ -795,14 +806,9 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
 
 .tab-content.active { animation: slideIn 0.3s ease-out; }
 
-/* Progress bar animation */
-@keyframes fillBar {
-    from { width: 0%; }
-}
-
+@keyframes fillBar { from { width: 0%; } }
 .score-fill { animation: fillBar 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
-/* Cheering animation */
 @keyframes cheer {
     0%, 100% { transform: scale(1); }
     25% { transform: scale(1.05) rotate(-2deg); }
@@ -1019,11 +1025,6 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
 @keyframes tourCardAnim {
     from { opacity: 0; transform: scale(0.92); }
     to   { opacity: 1; transform: scale(1); }
-}
-
-@keyframes slideUp {
-    from { transform: translateX(-50%) translateY(40px); opacity: 0; }
-    to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
 
 .tour-guide {
@@ -1680,8 +1681,6 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
     </div>
 </div>
 
-<script src="script.js"></script>
-
 <!-- ===== ONBOARDING TOUR ===== -->
 <div id="tourOverlay" class="tour-overlay hidden">
     <svg id="tourSvgOverlay" style="position:fixed;inset:0;pointer-events:none;z-index:2000;" xmlns="http://www.w3.org/2000/svg">
@@ -1715,10 +1714,9 @@ th { background: var(--surface2); font-weight: 700; color: var(--text2); font-si
     <span class="ai-btn-label">Tour</span>
 </div>
 
-
 <script>
 // =============================================
-// DISCIPLINE TRACKER - script.js
+// DISCIPLINE TRACKER
 // =============================================
 
 // --- STATE ---
@@ -1735,7 +1733,8 @@ let userData = {
     friendRequests: [],
     streak: 0,
     lastActive: null,
-    completionTimestamps: {}  // key: "choreIdx_dateString" -> timestamp ms
+    completionTimestamps: {},
+    lastSubjectCompletionTs: 0
 };
 
 let timerInterval = null;
@@ -1870,7 +1869,6 @@ function showApp() {
     loadFriends();
     renderProfile();
     renderAllTimeCal();
-    // Always re-sync on load to ensure overallScore/totalPoints are up to date in Firestore
     syncToCloud();
     maybeStartTour();
 }
@@ -1879,11 +1877,9 @@ window.showTab = function (name) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
-    // Safe: only use event.currentTarget when called from a real click
     try {
         if (event && event.currentTarget) event.currentTarget.classList.add('active');
     } catch(e) {
-        // Called programmatically (tour) — highlight matching nav link
         document.querySelectorAll('.nav-link').forEach(l => {
             if ((l.getAttribute('onclick') || '').includes("'" + name + "'")) l.classList.add('active');
         });
@@ -1905,9 +1901,7 @@ function updateSidebar() {
 
 async function syncToCloud() {
     if (!currentUser) return;
-    const scores = computeScores();
     const totalMins = Math.floor((userData.focusTimeData.total || 0) / 60);
-    const todayPts = getTodayPoints();
     await db.collection('users').doc(currentUser.uid).set({
         username: userData.username,
         chores: userData.chores,
@@ -1921,6 +1915,7 @@ async function syncToCloud() {
         streak: userData.streak,
         lastActive: dStr,
         completionTimestamps: userData.completionTimestamps || {},
+        lastSubjectCompletionTs: userData.lastSubjectCompletionTs || 0,
         totalPoints: getTotalPoints(),
         distractionPenalty: userData.distractionPenalty || 0,
         overallScore: getTotalPoints(),
@@ -1966,14 +1961,12 @@ function getTodayPoints() {
 }
 
 function getTotalPoints() {
-    // Recompute from all historical chore data so it's always accurate
     let total = 0;
     userData.chores.forEach(c => {
         if (!c.history) return;
         const pts = c.type === 'subject' ? 10 : 5;
         Object.values(c.history).forEach(done => { if (done) total += pts; });
     });
-    // Subtract all-time distraction penalties
     total -= (userData.distractionPenalty || 0);
     return total;
 }
@@ -2375,10 +2368,10 @@ window.deleteItem = function (idx) {
 // =============================================
 // RATE LIMITING · COOLDOWN · THRESHOLDS
 // =============================================
-const COOLDOWN_MS   = 2 * 60 * 60 * 1000; // 2-hour cooldown per subject cell
+const COOLDOWN_MS   = 2 * 60 * 60 * 1000; // 2-hour GLOBAL cooldown after any subject tick
 const DAILY_PT_CAP  = 100;                 // max pts per day
 const DAILY_CLK_CAP = 12;                  // max subject completions per day
-let   cdTickers     = {};                  // cellKey -> intervalId
+let   cdTickers     = {};                  // intervalId store
 
 function cellKey(idx, ds) { return idx + '||' + ds; }
 
@@ -2388,8 +2381,16 @@ function getTodaySubjectClicks() {
         .length;
 }
 
+// Per-cell cooldown (used only for un-marking logic)
 function getCooldownRemaining(idx, ds) {
     const ts = (userData.completionTimestamps || {})[cellKey(idx, ds)];
+    if (!ts) return 0;
+    return Math.max(0, COOLDOWN_MS - (Date.now() - ts));
+}
+
+// GLOBAL cooldown — any subject completion locks ALL subject cells
+function getGlobalCooldownRemaining() {
+    const ts = userData.lastSubjectCompletionTs || 0;
     if (!ts) return 0;
     return Math.max(0, COOLDOWN_MS - (Date.now() - ts));
 }
@@ -2430,10 +2431,10 @@ window.toggleCell = function (idx, ds) {
     const isToday = ds === today.toDateString();
 
     if (!isDone && chore.type === 'subject' && isToday) {
-        // Gate 1 — 2-hour cooldown
-        const rem = getCooldownRemaining(idx, ds);
+        // Gate 1 — 2-hour GLOBAL cooldown (any subject completion locks all others)
+        const rem = getGlobalCooldownRemaining();
         if (rem > 0) {
-            showBanner('⏳ Cooldown! Try again in ' + fmtMs(rem), 'cooldown');
+            showBanner('⏳ Global cooldown! Only 1 subject per 2h. Try again in ' + fmtMs(rem), 'cooldown');
             return;
         }
         // Gate 2 — 100pt daily cap
@@ -2446,15 +2447,19 @@ window.toggleCell = function (idx, ds) {
             showBanner('🔒 Max 12 subject completions per day reached!', 'cap');
             return;
         }
-        // All gates passed — stamp the timestamp
+
+        // All gates passed — stamp per-cell AND global timestamps
         if (!userData.completionTimestamps) userData.completionTimestamps = {};
         userData.completionTimestamps[cellKey(idx, ds)] = Date.now();
+        userData.lastSubjectCompletionTs = Date.now(); // <-- GLOBAL LOCK
     }
 
-    // Un-marking — wipe the timestamp so cooldown resets
+    // Un-marking — wipe per-cell timestamp so cooldown resets for that cell
     if (isDone && chore.type === 'subject') {
         if (userData.completionTimestamps)
             delete userData.completionTimestamps[cellKey(idx, ds)];
+        // Note: we do NOT reset lastSubjectCompletionTs on unmark
+        // so the global cooldown continues to protect other cells
     }
 
     chore.history[ds] = !isDone;
@@ -2492,32 +2497,31 @@ function renderTable() {
             if (isFuture) {
                 html += `<td class="cell cell-locked" title="Future days — keep going!">${done ? '<span class="tick">✓</span>' : '<span style="color:#1e2d45;font-size:0.8rem;">🗓️</span>'}</td>`;
             } else if (c.type === 'subject' && isToday && !done) {
-                const rem = getCooldownRemaining(i, ds);
+                // Use GLOBAL cooldown for the today cell display
+                const rem = getGlobalCooldownRemaining();
                 const ptsCapped = getTodayPoints() >= DAILY_PT_CAP;
                 const clkCapped = getTodaySubjectClicks() >= DAILY_CLK_CAP;
                 if (rem > 0) {
-                    const ck = cellKey(i, ds);
-                    const safeId = 'cdt_' + ck.replace(/[|\s]/g,'_');
-                    html += `<td class="cell cell-cooldown" title="Cooldown active" data-ck="${ck}"><div class="cd-wrap"><span class="cd-icon">⏳</span><span class="cd-time" id="${safeId}">${fmtMs(rem)}</span></div></td>`;
+                    // Show global cooldown on every undone subject cell today
+                    html += `<td class="cell cell-cooldown" title="Global cooldown active — complete one subject per 2 hours"><div class="cd-wrap"><span class="cd-icon">⏳</span><span class="cd-time global-cd-time">${fmtMs(rem)}</span></div></td>`;
                 } else if (ptsCapped || clkCapped) {
                     const tip = ptsCapped ? 'Daily 100 pt cap reached' : 'Daily 12-click cap reached';
                     html += `<td class="cell cell-capped" title="${tip}">🔒</td>`;
                 } else {
-                    // Use data-idx + data-ds to avoid space-in-attribute bug
                     html += `<td class="cell cell-clickable" data-idx="${i}" data-ds="${encodeURIComponent(ds)}"></td>`;
                 }
             } else {
-                // Past day or habit — use data attributes to avoid space-in-attribute bug
                 const doneHtml = done ? '<span class="tick">✓</span>' : '';
                 html += `<td class="cell cell-clickable" data-idx="${i}" data-ds="${encodeURIComponent(ds)}">${doneHtml}</td>`;
             }
         });
+
         html += `<td><button class="del-btn" data-delidx="${i}">✕</button></td>`;
         tr.innerHTML = html;
         tbody.appendChild(tr);
     });
 
-    // Attach click handlers AFTER setting innerHTML (avoids space-in-attribute bug)
+    // Attach click handlers after innerHTML
     tbody.querySelectorAll('.cell-clickable').forEach(td => {
         td.addEventListener('click', () => {
             toggleCell(parseInt(td.dataset.idx), decodeURIComponent(td.dataset.ds));
@@ -2536,33 +2540,28 @@ function renderTable() {
 }
 
 // =============================================
-// COOLDOWN LIVE TICKERS
+// COOLDOWN LIVE TICKERS — single global ticker
 // =============================================
 function startCooldownTickers() {
-    // Kill old tickers
+    // Kill all old tickers
     Object.values(cdTickers).forEach(id => clearInterval(id));
     cdTickers = {};
 
-    document.querySelectorAll('[data-ck]').forEach(cell => {
-        const ck   = cell.getAttribute('data-ck');
-        const parts = ck.split('||');
-        const idx  = parseInt(parts[0]);
-        const ds   = parts[1];
-        const safeId = 'cdt_' + ck.replace(/[|\s]/g, '_');
-        const el   = document.getElementById(safeId);
-        if (!el) return;
+    const rem = getGlobalCooldownRemaining();
+    if (rem <= 0) return;
 
-        cdTickers[ck] = setInterval(() => {
-            const rem = getCooldownRemaining(idx, ds);
-            if (rem <= 0) {
-                clearInterval(cdTickers[ck]);
-                delete cdTickers[ck];
-                renderTable(); // cell becomes clickable
-            } else {
-                el.textContent = fmtMs(rem);
-            }
-        }, 1000);
-    });
+    // Single interval that updates all .global-cd-time spans simultaneously
+    cdTickers['global'] = setInterval(() => {
+        const r = getGlobalCooldownRemaining();
+        document.querySelectorAll('.global-cd-time').forEach(el => {
+            el.textContent = fmtMs(r);
+        });
+        if (r <= 0) {
+            clearInterval(cdTickers['global']);
+            delete cdTickers['global'];
+            renderTable(); // all subject cells become clickable again
+        }
+    }, 1000);
 }
 
 // =============================================
@@ -2722,7 +2721,6 @@ function renderProfile() {
     const name = userData.username || 'Anonymous';
     const earned = (userData.badges || []);
     const totalMins = Math.floor((userData.focusTimeData.total || 0) / 60);
-    const scores = computeScores();
     const badgeIcons = BADGES.map(b => {
         const isEarned = earned.find(e => e.id === b.id);
         return `<div class="badge-item ${isEarned ? 'earned' : 'locked'}" title="${b.desc}">
@@ -2812,7 +2810,6 @@ function renderDailyBadges() {
         const score = getSubjectScore(ds);
         const habitsAll = allHabitsDoneOn(ds);
         const isToday = d.getTime() === today.getTime();
-        const isPast = d.getTime() < today.getTime();
         const dayLabel = d.toLocaleDateString(undefined, { weekday: 'short' });
 
         const isFuture = d.getTime() > today.getTime();
@@ -3147,7 +3144,6 @@ function renderAllTimeCal() {
         const pts = getSubjectScore(ds);
         const isToday = ds === today.toDateString();
         const isFuture = date > today;
-        const penalty = userData.distractionPenalty || 0;
 
         let cls = 'cal-cell';
         let icon = '';
@@ -3185,7 +3181,6 @@ function renderAllTimeCal() {
     }
 
     html += '</div>';
-
     html += `<div class="cal-legend">
         <span class="cal-leg cal-goal">✅ Goal</span>
         <span class="cal-leg cal-legendary">🌟 Legendary</span>
@@ -3195,7 +3190,6 @@ function renderAllTimeCal() {
 
     container.innerHTML = html;
 
-    // Delegated click — read ds from data attribute to avoid inline quote issues
     container.querySelectorAll('[data-ds]').forEach(cell => {
         cell.addEventListener('click', () => showDayDetail(cell.getAttribute('data-ds')));
     });
@@ -3212,7 +3206,6 @@ window.showDayDetail = function(ds) {
     const target = getDailyTargetPts();
     const isToday = ds === today.toDateString();
 
-    // Determine status
     let statusIcon, statusLabel, ptsClass;
     if (pts === 0) {
         statusIcon = '😴'; statusLabel = 'No activity'; ptsClass = 'day-pts-miss';
@@ -3224,7 +3217,6 @@ window.showDayDetail = function(ds) {
         statusIcon = '🔥'; statusLabel = 'Partial'; ptsClass = 'day-pts-partial';
     }
 
-    // Split into subjects and habits
     const subjects = userData.chores.filter(c => c.type === 'subject');
     const habits   = userData.chores.filter(c => c.type === 'habit');
 
@@ -3305,7 +3297,7 @@ const TOUR_STEPS = [
     },
     {
         target: '#taskTable',
-        text: "📋 This is your <b>Tracker Table</b>. Add your subjects and habits, then tick them off each day. Only today is editable — future days are locked until they arrive! 🗓️"
+        text: "📋 This is your <b>Tracker Table</b>. Add your subjects and habits, then tick them off each day. Only today is editable — future days are locked until they arrive! 🗓️ Note: completing one subject starts a 2-hour cooldown before you can tick another! ⏳"
     },
     {
         target: '#allTimeCalendar',
@@ -3443,7 +3435,6 @@ function renderTourStep() {
         setTimeout(() => {
             const el = document.querySelector(step.target);
             if (el) {
-                // Use instant scroll so getBoundingClientRect is accurate immediately after
                 el.scrollIntoView({ behavior: 'instant', block: 'center' });
                 setTimeout(() => {
                     const rect = el.getBoundingClientRect();
